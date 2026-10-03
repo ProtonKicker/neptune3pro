@@ -1,0 +1,44 @@
+# Klipper MCU firmware — Elegoo Neptune 3 Pro (ZNP Robin Nano DW v2.2)
+
+Built: 2026-10-03 ~11:33 PDT (UTC-7) on Intel Mac (x86_64, macOS 13.7.8)
+Host checkout: ~/.klipperformac/klipper @ master 461c4e3
+  ("ar100: Use serial_irq instead of console_task for processsing messages (#7399)")
+Checkout pristine: yes (no local modifications; only untracked out/ + .config)
+
+## menuconfig (matches config/printer-elegoo-neptune3-pro-2023.cfg)
+- [*] Enable extra low-level configuration options
+- Micro-controller Architecture: STMicroelectronics STM32
+- Processor model: STM32F401
+- Bootloader offset: 32KiB bootloader  (CONFIG_STM32_FLASH_START_8000, app @ 0x8008000)
+- Clock Reference: 8 MHz crystal       (CONFIG_STM32_CLOCK_REF_8M)
+- Communication interface: Serial (on USART1 PA10/PA9)
+- Baud: 250000 (default)
+
+## Toolchain
+- GNU Arm Embedded 10.3-2021.10 (10.3.1), user-space: ~/.arm-toolchain/gcc-arm-none-eabi-10.3-2021.10/bin
+- brew formula arm-none-eabi-gcc was skipped (builds GCC from source, too slow on this Mac);
+  brew --cask gcc-arm-embedded needs interactive sudo, unavailable headless.
+- macOS note: host /usr/bin/cpp is Apple clang and fails Klipper's
+  armcm_link.ld preprocessing ("clang: error: no input files").
+  Build with: make CPP=arm-none-eabi-cpp
+- out/klipper.elf size: text=43492 data=52 bss=1016 dec=44560
+
+## Files in this folder
+- klipper.bin          raw build output (43544 bytes)
+- ZNP_ROBIN_NANO.bin   identical bytes, renamed for the Robin Nano bootloader
+- firmware.config.txt  full resolved .config
+- firmware.defconfig.txt  minimal defconfig
+- SHA1(klipper.bin) = 68de037e88d0d30e40bf7c6a6a91578ade44eaf7
+
+## First flash (stock Marlin -> Klipper, manual SD required)
+1. Format SD as MBR + single FAT32 partition (printer ignores ExFAT).
+2. Copy ZNP_ROBIN_NANO.bin to SD root, safely eject.
+3. Printer OFF -> insert SD -> power ON. Screen shows UPGRADE FIRMWARE
+   with stuck progress bar (normal). Wait ~2 min.
+4. Power OFF -> remove SD -> unplug stock touchscreen ribbon -> power ON.
+5. Connect USB to Mac, run: klipperformac serial --auto && klipperformac up
+
+## Later updates (Klipper already running, no SD removal)
+- Leave a FAT32 card in the printer, then:
+  ./scripts/flash-sdcard.sh /dev/cu.usbserial-XXXX znp-robin-nano-dw-v2.2
+  (board znp-robin-nano-dw-v2.2 is in this checkout via BurritoSOFTWARE spi_flash)
